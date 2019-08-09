@@ -35,11 +35,28 @@ class Compiler {
 
     }
     compileElement(node) {
-        console.log('compileElement ', node)
+        let attributes = node.attributes
+        attributes.forEach = Array.prototype.forEach
+		attributes.forEach( attr => {
+			let {name, value} = attr
+			if (this.isDirective(name)){
+                let [ ,directive] = name.split('-')
+                console.log(node, value, this.vm)
+				// CompileUtil[directive](node, value, this.vm)
+			}
+			
+		})
     }
     compileText(node) {
-        console.log('compileText ', node)
+		let content = node.textContent
+		if(/\{\{(.+?)\}\}/.test(content)){
+            console.log(node, content, this.vm)
+			// CompileUtil['text'](node, content, this.vm)
+		}
     }
+    isDirective(attrName){
+		return attrName.startsWith('v-')
+	}
 	isElementNode(node) {
 		return node.nodeType === 1
 	}

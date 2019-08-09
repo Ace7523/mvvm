@@ -14,18 +14,32 @@ class Compiler {
 		this.el = this.isElementNode(el) ? el : document.querySelector(el)
 		this.vm = vm
         let fragment = this.node2fragment(this.el)
-        
+
         this.compile(fragment)
-        
+
 		this.el.appendChild(fragment)
 	}
 	compile(node) {
-        console.log('node', node)
         let childNodes = node.childNodes
-        console.log('childNodes', childNodes)
-        console.log('todo 编译')
-		
-	}
+        // childNodes 是一个类数组 没用babel [...childNodes] 用不了
+		childNodes.forEach = Array.prototype.forEach
+		childNodes.forEach(child => {
+			if (this.isElementNode(child)){
+				this.compileElement(child)
+				// 递归
+				this.compile(child)
+			} else {
+				this.compileText(child)
+			}
+		})
+
+    }
+    compileElement(node) {
+        console.log('compileElement ', node)
+    }
+    compileText(node) {
+        console.log('compileText ', node)
+    }
 	isElementNode(node) {
 		return node.nodeType === 1
 	}
@@ -38,4 +52,4 @@ class Compiler {
 		}
 		return fragment
 	}
-}
+} 

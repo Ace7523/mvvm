@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>my-vue</title>
+</head>
+<body>
+
+<div id='app'>
+	<input type="text" v-model='user.age'>
+	<div>name： {{user.name}}</div>
+	<div>age: {{user.age}}</div>
+</div>
+
+<script src="MVVM.js"></script>
+<script type="text/javascript">
+	let vm = new Vue({
+		el: '#app',
+		data: {
+			user: {
+				name: 'Ace7523',
+				age: 18
+			}
+		}
+	})
+</script>
+</body>
+</html>

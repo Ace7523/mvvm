@@ -1,3 +1,33 @@
+const CompileUtil = {
+	// 根据表达式取到对应数据, 对于{{ key.val }} 这种前后有空格的，要注意格式 
+	getVal(vm, expr){
+		return expr.split('.').reduce((current, data)=>{
+			return current[data]
+		}, vm.$data)
+	},
+	model(node, expr, vm){
+		let fn = this.updater['modelUpdater']
+		let value = this.getVal(vm, expr)
+		fn(node, value)
+	},
+	text(node, expr, vm){
+		// {{a}} {{b}}
+		// args 就是拿到所有的 {{}}
+		let fn = this.updater['textUpdater']
+		let content = expr.replace(/\{\{(.+?)\}\}/g, (...args) => {
+			return this.getVal(vm, args[1])
+		})
+		fn(node, content)
+	},
+	updater: {
+		modelUpdater(node, value) {
+			node.value = value
+		},
+		textUpdater(node, value) {
+			node.textContent = value
+		}
+	}
+}
 class Vue {
 	constructor(options) {
 		this.$el = options.el
@@ -41,8 +71,7 @@ class Compiler {
 			let {name, value} = attr
 			if (this.isDirective(name)){
                 let [ ,directive] = name.split('-')
-                console.log(node, value, this.vm)
-				// CompileUtil[directive](node, value, this.vm)
+				CompileUtil[directive](node, value, this.vm)
 			}
 			
 		})
@@ -50,8 +79,7 @@ class Compiler {
     compileText(node) {
 		let content = node.textContent
 		if(/\{\{(.+?)\}\}/.test(content)){
-            console.log(node, content, this.vm)
-			// CompileUtil['text'](node, content, this.vm)
+			CompileUtil['text'](node, content, this.vm)
 		}
     }
     isDirective(attrName){

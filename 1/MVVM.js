@@ -34,9 +34,41 @@ class Vue {
 		this.$data = options.data
 
 		if(this.$el){
+            // 进行数据劫持 把数据全部转化为Object.defineProperty 来定义
+            new Observer(this.$data)
+            console.log('this.$data ', this.$data)
 			// 编辑模板 用 vm.$data 去替换模板 
 			new Compiler(this.$el, this)
 		}
+	}
+}
+class Observer {
+	constructor(data){
+		this.observer(data)
+	}
+	observer(data) {
+		if(data && typeof data == 'object'){
+			for(let key in data){
+				this.defineReactive(data, key, data[key])
+			}
+		}
+	}
+	defineReactive(obj, key, value){
+        // 递归 当前value还是对象的话 再次进行观察
+		this.observer(value)
+
+		Object.defineProperty(obj, key, {
+			get() {
+				return value
+			},
+			set : (newVal) => {
+				if(newVal != value){
+					// 如果赋值的newVal也是对象，那就需要对这个对象也进行监控
+					this.observer(newVal)
+					value = newVal
+				}
+			}
+		})
 	}
 }
 class Compiler {

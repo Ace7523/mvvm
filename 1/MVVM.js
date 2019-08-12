@@ -28,6 +28,21 @@ const CompileUtil = {
 		}
 	}
 }
+class Dep {
+	constructor() {
+		this.subs = []
+	}
+	// 订阅
+	addSub(watcher) {
+		this.subs.push(watcher)
+	}
+	// 发布
+	notify() {
+		this.subs.forEach(watcher => {
+			watcher.update()
+		})
+	}
+}
 class Vue {
 	constructor(options) {
 		this.$el = options.el
@@ -57,8 +72,13 @@ class Observer {
         // 递归 当前value还是对象的话 再次进行观察
 		this.observer(value)
 
+		let dep = new Dep()
+
 		Object.defineProperty(obj, key, {
 			get() {
+				
+				Dep.target && dep.addSub(Dep.target)
+
 				return value
 			},
 			set : (newVal) => {
@@ -66,6 +86,8 @@ class Observer {
 					// 如果赋值的newVal也是对象，那就需要对这个对象也进行监控
 					this.observer(newVal)
 					value = newVal
+
+					dep.notify()
 				}
 			}
 		})

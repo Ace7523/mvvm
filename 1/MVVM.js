@@ -5,8 +5,31 @@ const CompileUtil = {
 			return current[data]
 		}, vm.$data)
 	},
+	setValue(vm, expr, value){
+		expr.split('.').reduce((current, data, index, arr)=>{
+			if(index == arr.length -1){
+				return current[data] = value	
+			}
+			return current[data]
+		}, vm.$data)
+	},
+	getContentValue(vm, expr) {
+		// 重新去一次 {{a}} {{b}} 中的a b的值，再一次性放回去
+		return expr.replace(/\{\{(.+?)\}\}/g, (...args) => {
+			return this.getVal(vm, args[1])
+		})
+	},
 	model(node, expr, vm){
 		let fn = this.updater['modelUpdater']
+
+		new Watcher(vm, expr, (newVal) => {
+			fn(node, newVal)
+		})
+		node.addEventListener('input', (e) => {
+			let value = e.target.value
+			this.setValue(vm, expr, value)
+		})
+
 		let value = this.getVal(vm, expr)
 		fn(node, value)
 	},
@@ -15,6 +38,11 @@ const CompileUtil = {
 		// args 就是拿到所有的 {{}}
 		let fn = this.updater['textUpdater']
 		let content = expr.replace(/\{\{(.+?)\}\}/g, (...args) => {
+
+			new Watcher(vm, args[1], (newVal) => {
+			    fn(node, this.getContentValue(vm, expr)) // 返回一个全的字符串
+			})
+
 			return this.getVal(vm, args[1])
 		})
 		fn(node, content)
@@ -41,6 +69,27 @@ class Dep {
 		this.subs.forEach(watcher => {
 			watcher.update()
 		})
+	}
+}
+class Watcher {
+	constructor(vm, expr, callback) {
+		this.vm = vm
+		this.expr = expr 
+		this.callback = callback
+		// 默认先存放一个老值
+		this.oldValue = this.getOldValue()
+	}
+	getOldValue() {
+		Dep.target = this // 先把自己放在this上
+		let value = CompileUtil.getVal(this.vm, this.expr)
+		Dep.target = null
+		return value
+	}
+	update() {
+		let newVal = CompileUtil.getVal(this.vm, this.expr)
+		if (newVal !== this.oldValue){
+			this.callback(newVal)
+		}
 	}
 }
 class Vue {
@@ -76,7 +125,7 @@ class Observer {
 
 		Object.defineProperty(obj, key, {
 			get() {
-				
+
 				Dep.target && dep.addSub(Dep.target)
 
 				return value

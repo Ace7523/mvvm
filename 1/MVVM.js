@@ -19,6 +19,11 @@ const CompileUtil = {
 			return this.getVal(vm, args[1])
 		})
 	},
+	on(node, expr, vm, eventName){
+		node.addEventListener(eventName, (e) => {
+			vm[expr].call(vm, e)
+		})
+	},
 	model(node, expr, vm){
 		let fn = this.updater['modelUpdater']
 
@@ -98,6 +103,7 @@ class Vue {
 		this.$data = options.data
 
 		let computed = options.computed
+		let methods = options.methods
 
 		if(this.$el){
             // 进行数据劫持 把数据全部转化为Object.defineProperty 来定义
@@ -112,8 +118,17 @@ class Vue {
 					}
 				})
 			}
+
+			for(let key in methods){
+				Object.defineProperty(this, key, {
+					get(){
+						return methods[key]
+					}
+				})
+			}
+
 			this.proxyVm(this.$data)
-			
+
 			// 编辑模板 用 vm.$data 去替换模板 
 			new Compiler(this.$el, this)
 		}
@@ -195,8 +210,9 @@ class Compiler {
 		attributes.forEach( attr => {
 			let {name, value} = attr
 			if (this.isDirective(name)){
-                let [ ,directive] = name.split('-')
-				CompileUtil[directive](node, value, this.vm)
+				let [ ,directive] = name.split('-')
+				let [directiveName, eventName] = directive.split(':')
+				CompileUtil[directiveName](node, value, this.vm, eventName)
 			}
 			
 		})

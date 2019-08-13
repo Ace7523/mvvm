@@ -44,3 +44,6 @@ callback 回调函数
 commit8
 添加computed的实现 这部分很考察js基础
 注意 添加了一个proxyVm的方法 ，添加这个是有目的的
+
+commit9
+添加methods处理逻辑

@@ -10,6 +10,7 @@
 	<div>name： {{user.name}}</div>
 	<div>age: {{user.age}}</div>
 	<div>computed newName: {{newName}}</div>
+	<button v-on:click="change">点击</button>
 </div>
 
 <script src="MVVM.js"></script>
@@ -25,6 +26,11 @@
 		computed: {
 			newName(){
 				return this.user.name + '帅帅'
+			}
+		},
+		methods: {
+			change() {
+				this.user.age ++
 			}
 		}
 	})

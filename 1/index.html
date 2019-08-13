@@ -9,6 +9,7 @@
 	<input type="text" v-model='user.age'>
 	<div>name： {{user.name}}</div>
 	<div>age: {{user.age}}</div>
+	<div>computed newName: {{newName}}</div>
 </div>
 
 <script src="MVVM.js"></script>
@@ -19,6 +20,11 @@
 			user: {
 				name: 'Ace7523',
 				age: 18
+			}
+		},
+		computed: {
+			newName(){
+				return this.user.name + '帅帅'
 			}
 		}
 	})

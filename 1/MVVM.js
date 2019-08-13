@@ -97,14 +97,36 @@ class Vue {
 		this.$el = options.el
 		this.$data = options.data
 
+		let computed = options.computed
+
 		if(this.$el){
             // 进行数据劫持 把数据全部转化为Object.defineProperty 来定义
-            new Observer(this.$data)
-            console.log('this.$data ', this.$data)
+			new Observer(this.$data)
+			
+			for(let key in computed){
+				Object.defineProperty(this.$data, key, {
+					get: ()=>{
+						// 确保this指向当前new出来的vm实例
+						// 箭头函数中 没有this 于是向上找 找打this.$el 的 this
+						return computed[key].call(this)
+					}
+				})
+			}
+			this.proxyVm(this.$data)
+			
 			// 编辑模板 用 vm.$data 去替换模板 
 			new Compiler(this.$el, this)
 		}
 	}
+	proxyVm(data){
+		for(let key in data){
+			Object.defineProperty(this, key, {
+				get() {
+					return data[key]
+				}
+			})
+		}
+	}	
 }
 class Observer {
 	constructor(data){
